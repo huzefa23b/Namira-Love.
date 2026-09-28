@@ -1,45 +1,882 @@
-const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
-const state={letter:false,music:false};
-window.addEventListener("load",()=>{setTimeout(()=>$("#loader").classList.add("done"),1200);initNav();initLetter();initGallery();initSecret();initMusic();initParticles();initTrail();});
+/* ============================================================
+   NAMIRA — CINEMATIC LOVE EXPERIENCE
+   Interactive engine
+============================================================ */
 
-function initNav(){
-  $$(".next").forEach(b=>b.addEventListener("click",()=>document.querySelector(`.scene[data-index="${b.dataset.go}"]`)?.scrollIntoView({behavior:"smooth"})));
-  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)$("#progress").style.width=(Number(e.target.dataset.index)/4*100)+"%"}),{threshold:.55});
-  $$(".scene").forEach(s=>io.observe(s));
-}
-function initLetter(){
- const env=$("#envelope"),btn=$("#open"),out=$("#typed");
- const msg="Namira, some people become a beautiful part of your thoughts without even trying. You are that person for me. I hope you always know that you are deeply special to me. No fancy words can completely explain it — but every little moment with you means more than you know.";
- btn.addEventListener("click",()=>{
-  if(state.letter)return;state.letter=true;env.classList.add("open");let i=0;
-  const type=()=>{out.textContent=msg.slice(0,i++);if(i<=msg.length)setTimeout(type,18)};setTimeout(type,650);
- });
-}
-function initGallery(){
- const lb=$("#lightbox"),img=$("#lightboxImg"),cap=$("#caption");
- const data=[["assets/photos/namira-memory-01.png","01 — THE SUNSET"],["assets/photos/namira-memory-02.png","02 — THE LITTLE MOMENT"]];
- $$(".photo-card").forEach(card=>card.addEventListener("click",()=>{
-   const d=data[Number(card.dataset.photo)];img.src=d[0];cap.textContent=d[1];lb.classList.add("show");burst(innerWidth/2,innerHeight/2,30);
- }));
- $("#close").onclick=()=>lb.classList.remove("show");lb.addEventListener("click",e=>{if(e.target===lb)lb.classList.remove("show")});
-}
-function initSecret(){
- const box=$("#secretBox");$("#secret").onclick=()=>{box.classList.add("show");burst(innerWidth/2,innerHeight/2,100)};
- $("#closeSecret").onclick=()=>box.classList.remove("show");
- box.addEventListener("click",e=>{if(e.target===box)box.classList.remove("show")});
- $("#heart").addEventListener("click",e=>burst(e.clientX,e.clientY,60));
-}
-function initMusic(){
- const audio=$("#music"),b=$("#sound");b.onclick=async()=>{try{if(state.music){audio.pause();state.music=false;b.innerHTML="♫ <i>sound</i>"}else{await audio.play();state.music=true;b.innerHTML="❚❚ <i>sound</i>"}}catch{b.innerHTML="♫ <i>add your-song.mp3</i>"}};
-}
-function initParticles(){
- const c=$("#particles"),x=c.getContext("2d");let w,h,ps=[],mx=-9999,my=-9999,dpr=Math.min(devicePixelRatio||1,2);
- function resize(){w=innerWidth;h=innerHeight;c.width=w*dpr;c.height=h*dpr;x.setTransform(dpr,0,0,dpr,0,0);ps=Array.from({length:Math.min(170,Math.floor(w*h/9000))},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.5+.2,v:Math.random()*.45+.08,a:Math.random()*.45+.08,t:Math.random()*7}))}
- function loop(){x.clearRect(0,0,w,h);for(const p of ps){let dx=p.x-mx,dy=p.y-my,d=Math.hypot(dx,dy);if(d<110){p.x+=dx/d*.35;p.y+=dy/d*.35}p.y-=p.v;p.x+=Math.sin(p.t)*.06;p.t+=.008;if(p.y<0)p.y=h;x.beginPath();x.arc(p.x,p.y,p.r,0,7);x.fillStyle=`rgba(255,130,175,${p.a})`;x.fill()}requestAnimationFrame(loop)}
- addEventListener("resize",resize);addEventListener("pointermove",e=>{mx=e.clientX;my=e.clientY});resize();loop();
-}
-function initTrail(){
- const c=$("#trail"),x=c.getContext("2d");let w,h,dpr=Math.min(devicePixelRatio||1,2),pts=[];
- function resize(){w=innerWidth;h=innerHeight;c.width=w*dpr;c.height=h*dpr;x.setTransform(dpr,0,0,dpr,0,0)}function loop(){x.clearRect(0,0,w,h);pts.forEach(p=>{p.a-=.025;p.r*=.985});pts=pts.filter(p=>p.a>0);pts.forEach(p=>{x.globalAlpha=p.a;x.fillStyle="#ff5d9b";x.beginPath();x.arc(p.x,p.y,p.r,0,7);x.fill()});x.globalAlpha=1;requestAnimationFrame(loop)}addEventListener("resize",resize);addEventListener("pointermove",e=>{if(Math.random()>.65)pts.push({x:e.clientX,y:e.clientY,r:Math.random()*4+1,a:.7})});resize();loop();
-}
-function burst(x,y,n){const c=document.createElement("canvas");c.style.cssText="position:fixed;inset:0;z-index:95;pointer-events:none";c.width=innerWidth;c.height=innerHeight;document.body.appendChild(c);const g=c.getContext("2d"),a=Array.from({length:n},()=>({x,y,vx:(Math.random()-.5)*10,vy:(Math.random()-.5)*10-2,a:1,s:Math.random()*4+2,r:Math.random()*6}));function f(){g.clearRect(0,0,c.width,c.height);let live=false;a.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.12;p.a-=.018;p.r+=.1;if(p.a>0){live=true;g.save();g.globalAlpha=p.a;g.translate(p.x,p.y);g.rotate(p.r);g.font=`${p.s*3}px serif`;g.fillStyle="#ff5d9b";g.fillText("♥",0,0);g.restore()}});if(live)requestAnimationFrame(f);else c.remove()}f();}
+(() => {
+
+  "use strict";
+
+  /* ==========================================================
+     BASIC ELEMENTS
+  ========================================================== */
+
+  const scenes = [...document.querySelectorAll(".scene")];
+  const dots = [...document.querySelectorAll(".dot")];
+
+  const progressText =
+    document.getElementById("progressText");
+
+  const progressFill =
+    document.getElementById("progressFill");
+
+  const previousButton =
+    document.getElementById("previousButton");
+
+  const nextNavigation =
+    document.getElementById("nextNavigation");
+
+  const soundButton =
+    document.getElementById("soundButton");
+
+  const music =
+    document.getElementById("music");
+
+  let currentScene = 1;
+
+  const totalScenes = scenes.length;
+
+
+  /* ==========================================================
+     SCENE ENGINE
+  ========================================================== */
+
+  function showScene(number) {
+
+    if (number < 1) {
+      number = totalScenes;
+    }
+
+    if (number > totalScenes) {
+      number = 1;
+    }
+
+    currentScene = number;
+
+    scenes.forEach((scene) => {
+
+      const sceneNumber =
+        Number(scene.dataset.scene);
+
+      scene.classList.toggle(
+        "active",
+        sceneNumber === currentScene
+      );
+
+    });
+
+
+    dots.forEach((dot, index) => {
+
+      dot.classList.toggle(
+        "active",
+        index + 1 === currentScene
+      );
+
+    });
+
+
+    progressText.textContent =
+      String(currentScene).padStart(2, "0") +
+      " / " +
+      String(totalScenes).padStart(2, "0");
+
+
+    progressFill.style.width =
+      `${(currentScene / totalScenes) * 100}%`;
+
+
+    if (currentScene === 5) {
+      createHeartBurst();
+    }
+
+  }
+
+
+  function nextScene() {
+    showScene(currentScene + 1);
+  }
+
+
+  function previousScene() {
+    showScene(currentScene - 1);
+  }
+
+
+  /* ==========================================================
+     NEXT BUTTONS
+  ========================================================== */
+
+  document
+    .querySelectorAll(".next-button")
+    .forEach((button) => {
+
+      button.addEventListener("click", () => {
+
+        const next =
+          Number(button.dataset.next);
+
+        if (next) {
+          showScene(next);
+        } else {
+          nextScene();
+        }
+
+      });
+
+    });
+
+
+  /* ==========================================================
+     NAVIGATION
+  ========================================================== */
+
+  nextNavigation.addEventListener(
+    "click",
+    nextScene
+  );
+
+  previousButton.addEventListener(
+    "click",
+    previousScene
+  );
+
+
+  dots.forEach((dot) => {
+
+    dot.addEventListener("click", () => {
+
+      showScene(
+        Number(dot.dataset.go)
+      );
+
+    });
+
+  });
+
+
+  /* ==========================================================
+     KEYBOARD
+  ========================================================== */
+
+  document.addEventListener(
+    "keydown",
+    (event) => {
+
+      if (
+        event.key === "ArrowRight" ||
+        event.key === "ArrowDown" ||
+        event.key === " "
+      ) {
+
+        event.preventDefault();
+
+        nextScene();
+
+      }
+
+
+      if (
+        event.key === "ArrowLeft" ||
+        event.key === "ArrowUp"
+      ) {
+
+        event.preventDefault();
+
+        previousScene();
+
+      }
+
+    }
+  );
+
+
+  /* ==========================================================
+     TOUCH SWIPE
+  ========================================================== */
+
+  let touchStartX = 0;
+  let touchStartY = 0;
+
+  document.addEventListener(
+    "touchstart",
+    (event) => {
+
+      const touch =
+        event.changedTouches[0];
+
+      touchStartX =
+        touch.clientX;
+
+      touchStartY =
+        touch.clientY;
+
+    },
+    { passive: true }
+  );
+
+
+  document.addEventListener(
+    "touchend",
+    (event) => {
+
+      const touch =
+        event.changedTouches[0];
+
+      const deltaX =
+        touch.clientX - touchStartX;
+
+      const deltaY =
+        touch.clientY - touchStartY;
+
+
+      if (
+        Math.abs(deltaX) < 45 &&
+        Math.abs(deltaY) < 45
+      ) {
+        return;
+      }
+
+
+      if (
+        Math.abs(deltaY) >
+        Math.abs(deltaX)
+      ) {
+
+        if (deltaY < 0) {
+          nextScene();
+        } else {
+          previousScene();
+        }
+
+      } else {
+
+        if (deltaX < 0) {
+          nextScene();
+        } else {
+          previousScene();
+        }
+
+      }
+
+    },
+    { passive: true }
+  );
+
+
+  /* ==========================================================
+     PHOTO LIGHTBOX
+  ========================================================== */
+
+  const photoModal =
+    document.getElementById("photoModal");
+
+  const modalImage =
+    document.getElementById("modalImage");
+
+  const modalCaption =
+    document.getElementById("modalCaption");
+
+  const closePhoto =
+    document.getElementById("closePhoto");
+
+
+  document
+    .querySelectorAll(".photo-card")
+    .forEach((card) => {
+
+      card.addEventListener(
+        "click",
+        () => {
+
+          const image =
+            card.dataset.photo;
+
+          const img =
+            card.querySelector("img");
+
+          modalImage.src = image;
+
+          modalImage.alt =
+            img.alt;
+
+          modalCaption.textContent =
+            card.querySelector(
+              ".photo-caption"
+            ).innerText;
+
+          photoModal.classList.add("open");
+
+          photoModal.setAttribute(
+            "aria-hidden",
+            "false"
+          );
+
+        }
+      );
+
+    });
+
+
+  function closePhotoModal() {
+
+    photoModal.classList.remove(
+      "open"
+    );
+
+    photoModal.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+    setTimeout(() => {
+      modalImage.src = "";
+    }, 300);
+
+  }
+
+
+  closePhoto.addEventListener(
+    "click",
+    closePhotoModal
+  );
+
+
+  photoModal.addEventListener(
+    "click",
+    (event) => {
+
+      if (
+        event.target === photoModal
+      ) {
+        closePhotoModal();
+      }
+
+    }
+  );
+
+
+  /* ==========================================================
+     LETTER
+  ========================================================== */
+
+  const envelope =
+    document.getElementById("envelope");
+
+  const letterText =
+    document.getElementById("letterText");
+
+  const envelopeHint =
+    document.getElementById("envelopeHint");
+
+
+  const letterMessage =
+    "I don't know if there are perfect words for everything we feel. But I know that some people make ordinary moments feel a little more beautiful. You are one of those people for me. So this little world is simply my way of saying — you matter to me.";
+
+
+  let letterOpened = false;
+  let typingTimer = null;
+
+
+  envelope.addEventListener(
+    "click",
+    () => {
+
+      if (letterOpened) {
+        return;
+      }
+
+      letterOpened = true;
+
+      envelope.classList.add(
+        "open"
+      );
+
+      envelopeHint.textContent =
+        "a little something for you ♥";
+
+
+      let index = 0;
+
+      letterText.textContent = "";
+
+
+      clearInterval(typingTimer);
+
+
+      typingTimer = setInterval(() => {
+
+        letterText.textContent =
+          letterMessage.slice(
+            0,
+            index + 1
+          );
+
+        index++;
+
+
+        if (
+          index >=
+          letterMessage.length
+        ) {
+
+          clearInterval(
+            typingTimer
+          );
+
+        }
+
+      }, 26);
+
+    }
+  );
+
+
+  /* ==========================================================
+     SECRET MESSAGE
+  ========================================================== */
+
+  const secretButton =
+    document.getElementById("secretButton");
+
+  const secretModal =
+    document.getElementById("secretModal");
+
+  const closeSecret =
+    document.getElementById("closeSecret");
+
+
+  secretButton.addEventListener(
+    "click",
+    () => {
+
+      secretModal.classList.add(
+        "open"
+      );
+
+      secretModal.setAttribute(
+        "aria-hidden",
+        "false"
+      );
+
+      createHeartBurst(
+        45
+      );
+
+    }
+  );
+
+
+  function closeSecretModal() {
+
+    secretModal.classList.remove(
+      "open"
+    );
+
+    secretModal.setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+  }
+
+
+  closeSecret.addEventListener(
+    "click",
+    closeSecretModal
+  );
+
+
+  secretModal.addEventListener(
+    "click",
+    (event) => {
+
+      if (
+        event.target === secretModal
+      ) {
+        closeSecretModal();
+      }
+
+    }
+  );
+
+
+  /* ==========================================================
+     ESCAPE MODALS
+  ========================================================== */
+
+  document.addEventListener(
+    "keydown",
+    (event) => {
+
+      if (event.key === "Escape") {
+
+        closePhotoModal();
+        closeSecretModal();
+
+      }
+
+    }
+  );
+
+
+  /* ==========================================================
+     SOUND
+  ========================================================== */
+
+  let soundEnabled = false;
+
+
+  soundButton.addEventListener(
+    "click",
+    async () => {
+
+      if (!music.src) {
+
+        soundButton.innerHTML =
+          "♫ <span>add music</span>";
+
+        return;
+
+      }
+
+
+      if (!soundEnabled) {
+
+        try {
+
+          await music.play();
+
+          soundEnabled = true;
+
+          soundButton.innerHTML =
+            "♫ <span>playing</span>";
+
+        } catch {
+
+          soundButton.innerHTML =
+            "♫ <span>tap again</span>";
+
+        }
+
+      } else {
+
+        music.pause();
+
+        soundEnabled = false;
+
+        soundButton.innerHTML =
+          "♫ <span>sound</span>";
+
+      }
+
+    }
+  );
+
+
+  /* ==========================================================
+     CANVAS PARTICLES
+  ========================================================== */
+
+  const canvas =
+    document.getElementById("stars");
+
+  const ctx =
+    canvas.getContext("2d");
+
+  let particles = [];
+
+  let width = 0;
+  let height = 0;
+
+
+  function resizeCanvas() {
+
+    const ratio =
+      Math.min(
+        window.devicePixelRatio || 1,
+        2
+      );
+
+    width =
+      window.innerWidth;
+
+    height =
+      window.innerHeight;
+
+    canvas.width =
+      width * ratio;
+
+    canvas.height =
+      height * ratio;
+
+    canvas.style.width =
+      `${width}px`;
+
+    canvas.style.height =
+      `${height}px`;
+
+    ctx.setTransform(
+      ratio,
+      0,
+      0,
+      ratio,
+      0,
+      0
+    );
+
+    createParticles();
+
+  }
+
+
+  function createParticles() {
+
+    const count =
+      Math.min(
+        130,
+        Math.max(
+          55,
+          Math.floor(
+            width * height / 12000
+          )
+        )
+      );
+
+
+    particles =
+      Array.from(
+        { length: count },
+        () => ({
+
+          x: Math.random() * width,
+
+          y: Math.random() * height,
+
+          size:
+            Math.random() * 1.8 + .3,
+
+          alpha:
+            Math.random() * .55 + .15,
+
+          speed:
+            Math.random() * .25 + .05,
+
+          phase:
+            Math.random() * Math.PI * 2
+
+        })
+      );
+
+  }
+
+
+  function drawParticles(time) {
+
+    ctx.clearRect(
+      0,
+      0,
+      width,
+      height
+    );
+
+
+    particles.forEach((particle) => {
+
+      particle.y -= particle.speed;
+
+      if (particle.y < -10) {
+        particle.y = height + 10;
+        particle.x =
+          Math.random() * width;
+      }
+
+
+      const pulse =
+        Math.sin(
+          time * .001 +
+          particle.phase
+        ) * .25 + .75;
+
+
+      ctx.beginPath();
+
+      ctx.arc(
+        particle.x,
+        particle.y,
+        particle.size,
+        0,
+        Math.PI * 2
+      );
+
+
+      ctx.fillStyle =
+        `rgba(255,150,205,${
+          particle.alpha * pulse
+        })`;
+
+      ctx.fill();
+
+    });
+
+
+    requestAnimationFrame(
+      drawParticles
+    );
+
+  }
+
+
+  window.addEventListener(
+    "resize",
+    resizeCanvas
+  );
+
+
+  resizeCanvas();
+
+  requestAnimationFrame(
+    drawParticles
+  );
+
+
+  /* ==========================================================
+     MOUSE / POINTER GLOW
+  ========================================================== */
+
+  let pointerX =
+    window.innerWidth / 2;
+
+  let pointerY =
+    window.innerHeight / 2;
+
+
+  window.addEventListener(
+    "pointermove",
+    (event) => {
+
+      pointerX =
+        event.clientX;
+
+      pointerY =
+        event.clientY;
+
+    },
+    { passive: true }
+  );
+
+
+  /* ==========================================================
+     HEART BURST
+  ========================================================== */
+
+  function createHeartBurst(
+    amount = 18
+  ) {
+
+    const container =
+      document.body;
+
+    for (
+      let i = 0;
+      i < amount;
+      i++
+    ) {
+
+      const heart =
+        document.createElement(
+          "div"
+        );
+
+      heart.textContent = "♥";
+
+      heart.style.position =
+        "fixed";
+
+      heart.style.left =
+        `${50 + (Math.random() - .5) * 12}%`;
+
+      heart.style.top =
+        `${50 + (Math.random() - .5) * 12}%`;
+
+      heart.style.zIndex =
+        "300";
+
+      heart.style.pointerEvents =
+        "none";
+
+      heart.style.color =
+        Math.random() > .5
+          ? "#ff4f9a"
+          : "#ff9ec9";
+
+      heart.style.fontSize =
+        `${10 + Math.random() * 22}px`;
+
+      heart.style.transition =
+        `transform ${
+          1.2 + Math.random() * .8
+        }s cubic-bezier(.1,.8,.2,1),
+        opacity ${
+          1.2 + Math.random() * .8
+        }s ease`;
+
+      container.appendChild(
+        heart
+      );
+
+
+      requestAnimationFrame(() => {
+
+        const x =
+          (Math.random() - .5) *
+          window.innerWidth *
+          .8;
+
+        const y =
+          (Math.random() - .5) *
+          window.innerHeight *
+          .8;
+
+        heart.style.transform =
+          `translate(${x}px, ${y}px)
+           rotate(${(Math.random() - .5) * 90}deg)
+           scale(${.7 + Math.random()})`;
+
+        heart.style.opacity = "0";
+
+      });
+
+
+      setTimeout(() => {
+
+        heart.remove();
+
+      }, 2200);
+
+    }
+
+  }
+
+
+  /* ==========================================================
+     INITIALIZE
+  ========================================================== */
+
+  showScene(1);
+
+
+  /* ==========================================================
+     CONSOLE
+  ========================================================== */
+
+  console.log(
+    "%c♥ Namira — Cinematic Love Experience",
+    "color:#ff4f9a;font-size:18px;font-weight:bold;"
+  );
+
+  console.log(
+    "Made with a lot of feelings."
+  );
+
+})();
