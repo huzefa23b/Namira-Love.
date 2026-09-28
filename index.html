@@ -1,90 +1,519 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#050208">
-<meta name="description" content="A cinematic little world made for Namira.">
-<title>Namira — My Favorite Chapter</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
+
+  <meta name="theme-color" content="#08030b">
+
+  <meta
+    name="description"
+    content="A private little universe made especially for Namira."
+  >
+
+  <title>For Namira ♥</title>
+
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-<div id="loader"><div class="loader-ring"></div><div class="loader-heart">♥</div><p>For Namira</p></div>
-<canvas id="particles"></canvas><canvas id="trail"></canvas><div class="noise"></div>
-<header class="topbar"><div class="brand">N<span>♥</span></div><button id="sound" class="sound">♫ <i>sound</i></button></header>
-<div class="scroll-progress"><span id="progress"></span></div>
 
-<main>
-<section class="hero scene" data-index="0">
-  <div class="orb"></div>
-  <div class="hero-content">
-    <div class="eyebrow">A PRIVATE LITTLE WORLD</div>
-    <h1>Namira<sup>♥</sup></h1>
-    <p class="hero-sub">I could have written a message.<br>Instead, I made you a whole little universe.</p>
-    <button class="pill next" data-go="1">Enter <b>↗</b></button>
-  </div>
-  <div class="hero-meta"><span>01</span><i></i><span>FOR YOU</span></div>
-</section>
+  <!-- =========================================================
+       BACKGROUND
+  ========================================================== -->
 
-<section class="scene story" data-index="1">
-  <div class="counter">02 / 05</div>
-  <div class="story-grid">
-    <div><div class="eyebrow">SOMEWHERE ALONG THE WAY</div><h2>You became<br><em>my favorite thought.</em></h2></div>
-    <div class="story-copy"><p>There are people you meet, people you remember, and then there are people who quietly become part of the way you see the world.</p><p>For me, that feeling has a name.</p><strong>Namira.</strong></div>
-  </div>
-  <button class="round next" data-go="2">↓</button>
-</section>
+  <canvas id="stars"></canvas>
 
-<section class="scene gallery" data-index="2">
-  <div class="counter">03 / 05</div>
-  <div class="gallery-head"><div class="eyebrow">THE MEMORIES I KEEP</div><h2>Us, in<br><em>little frames.</em></h2></div>
-  <div class="photo-stage" id="photoStage">
-    <button class="photo-card card-a" data-photo="0"><img src="assets/photos/namira-memory-01.png" alt="A memory of Namira and Huzefa"><span>01 — THE SUNSET</span></button>
-    <button class="photo-card card-b" data-photo="1"><img src="assets/photos/namira-memory-02.png" alt="A memory of Namira and Huzefa"><span>02 — THE LITTLE MOMENT</span></button>
-    <div class="photo-glow"></div>
-  </div>
-  <p class="gallery-note">Tap a photo — the memories are meant to be felt, not rushed.</p>
-  <button class="round next" data-go="3">↓</button>
-</section>
+  <div class="noise"></div>
 
-<section class="scene letter" data-index="3">
-  <div class="counter">04 / 05</div>
-  <div class="letter-layout">
-    <div class="letter-intro"><div class="eyebrow">I LEFT YOU A LETTER</div><h2>Open it<br><em>slowly.</em></h2></div>
-    <div class="envelope-wrap">
-      <div id="envelope" class="envelope">
-        <div class="paper">
-          <span class="mini">FOR NAMIRA ♥</span><h3>Hey, you...</h3>
-          <p id="typed"></p><strong>— Huzefa</strong>
-        </div>
-        <div class="env-back"></div><div class="env-front"></div><div class="flap"></div>
-        <button id="open" class="open">OPEN</button>
-      </div>
-      <small>tap the envelope</small>
+  <div class="aurora aurora-one"></div>
+  <div class="aurora aurora-two"></div>
+  <div class="aurora aurora-three"></div>
+
+  <!-- =========================================================
+       MUSIC
+  ========================================================== -->
+
+  <audio id="music" loop preload="none">
+    <!-- Optional:
+    <source src="your-song.mp3" type="audio/mpeg">
+    -->
+  </audio>
+
+  <button
+    id="soundButton"
+    class="sound-button"
+    aria-label="Toggle sound"
+  >
+    ♫ <span>sound</span>
+  </button>
+
+  <!-- =========================================================
+       TOP BRAND
+  ========================================================== -->
+
+  <header class="topbar">
+
+    <div class="brand">
+      <span class="brand-heart">♥</span>
+      <span>For Namira</span>
     </div>
-  </div>
-  <button class="round next" data-go="4">↓</button>
-</section>
 
-<section class="scene finale" data-index="4">
-  <div class="counter">05 / 05</div>
-  <div class="heart-core" id="heart">♥</div>
-  <div class="final-content">
-    <div class="eyebrow">ONE LAST THING</div>
-    <h2>Namira,</h2>
-    <p>Some feelings don't need a perfect explanation. They just need to be honest.</p>
-    <p class="final-line">You are a beautiful chapter in my story, and I hope you always know how much you mean to me.</p>
-    <button id="secret" class="pill">There is one more thing <b>♥</b></button>
-  </div>
-</section>
-</main>
+    <div class="progress">
+      <span id="progressText">01 / 05</span>
 
-<div id="lightbox" class="lightbox"><button id="close">×</button><img id="lightboxImg" alt="Memory"><div id="caption"></div></div>
-<div id="secretBox" class="secret-box"><div class="secret-card"><button id="closeSecret">×</button><div class="secret-heart">♥</div><div class="eyebrow">MY FAVORITE THOUGHT</div><h3>Somewhere in this huge world...</h3><p>I got to meet <strong>you.</strong></p><small>Made with a lot of feelings, just for Namira.</small></div></div>
-<audio id="music" loop preload="none"><source src="assets/music/your-song.mp3" type="audio/mpeg"></audio>
-<script src="js/app.js"></script>
+      <div class="progress-line">
+        <div id="progressFill"></div>
+      </div>
+    </div>
+
+  </header>
+
+  <!-- =========================================================
+       MAIN
+  ========================================================== -->
+
+  <main id="app">
+
+    <!-- =======================================================
+         01 — INTRO
+    ======================================================== -->
+
+    <section
+      class="scene active"
+      data-scene="1"
+    >
+
+      <div class="scene-number">
+        01 <span>FOR YOU</span>
+      </div>
+
+      <div class="hero">
+
+        <div class="eyebrow">
+          A PRIVATE LITTLE WORLD
+        </div>
+
+        <h1>
+          Namira<span class="pink">♥</span>
+        </h1>
+
+        <p class="hero-description">
+          I could have written a message.
+          <br>
+          Instead, I made you a whole little universe.
+        </p>
+
+        <button
+          class="primary-button next-button"
+          data-next="2"
+        >
+          Enter
+          <span>↗</span>
+        </button>
+
+      </div>
+
+      <div class="floating-heart heart-one">♥</div>
+      <div class="floating-heart heart-two">♥</div>
+      <div class="floating-heart heart-three">♥</div>
+
+    </section>
+
+
+    <!-- =======================================================
+         02 — FEELINGS
+    ======================================================== -->
+
+    <section
+      class="scene"
+      data-scene="2"
+    >
+
+      <div class="scene-number">
+        02 <span>/ 05</span>
+      </div>
+
+      <div class="content-card">
+
+        <div class="small-label">
+          SOMEWHERE ALONG THE WAY
+        </div>
+
+        <h2>
+          You became
+          <em>my favorite thought.</em>
+        </h2>
+
+        <div class="divider"></div>
+
+        <p>
+          There are people you meet, people you remember,
+          and then there are people who quietly become part
+          of the way you see the world.
+        </p>
+
+        <p>
+          For me, that feeling has a name.
+        </p>
+
+        <div class="name-reveal">
+          <span>Namira</span>
+          <b>♥</b>
+        </div>
+
+        <button
+          class="circle-next next-button"
+          data-next="3"
+          aria-label="Next"
+        >
+          ↓
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         03 — MEMORIES
+    ======================================================== -->
+
+    <section
+      class="scene"
+      data-scene="3"
+    >
+
+      <div class="scene-number">
+        03 <span>/ 05</span>
+      </div>
+
+      <div class="memories">
+
+        <div class="small-label">
+          THE MEMORIES I KEEP
+        </div>
+
+        <h2>
+          Us, in
+          <em>little frames.</em>
+        </h2>
+
+        <div class="photo-grid">
+
+          <button
+            class="photo-card photo-one"
+            data-photo="namira-memory-01.png"
+          >
+
+            <img
+              src="namira-memory-01.png"
+              alt="A memory of Namira and Huzefa"
+            >
+
+            <div class="photo-caption">
+              <span>01</span>
+              THE SUNSET
+            </div>
+
+          </button>
+
+
+          <button
+            class="photo-card photo-two"
+            data-photo="namira-memory-02.png"
+          >
+
+            <img
+              src="namira-memory-02.png"
+              alt="A memory of Namira and Huzefa"
+            >
+
+            <div class="photo-caption">
+              <span>02</span>
+              THE LITTLE MOMENT
+            </div>
+
+          </button>
+
+        </div>
+
+        <p class="photo-hint">
+          Tap a photo — the memories are meant to be felt,
+          not rushed.
+        </p>
+
+        <button
+          class="circle-next next-button"
+          data-next="4"
+          aria-label="Next"
+        >
+          ↓
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         04 — LETTER
+    ======================================================== -->
+
+    <section
+      class="scene"
+      data-scene="4"
+    >
+
+      <div class="scene-number">
+        04 <span>/ 05</span>
+      </div>
+
+      <div class="letter-scene">
+
+        <div class="small-label">
+          I LEFT YOU A LETTER
+        </div>
+
+        <h2>
+          Open it
+          <em>slowly.</em>
+        </h2>
+
+
+        <button
+          id="envelope"
+          class="envelope"
+          aria-label="Open letter"
+        >
+
+          <div class="envelope-back"></div>
+
+          <div class="letter-paper">
+
+            <div class="letter-content">
+
+              <div class="letter-title">
+                FOR NAMIRA ♥
+              </div>
+
+              <div
+                id="letterText"
+                class="letter-text"
+              ></div>
+
+              <div class="letter-sign">
+                — Huzefa
+              </div>
+
+            </div>
+
+          </div>
+
+          <div class="envelope-front"></div>
+
+          <div class="envelope-flap"></div>
+
+          <div class="envelope-seal">
+            ♥
+          </div>
+
+        </button>
+
+        <div
+          id="envelopeHint"
+          class="envelope-hint"
+        >
+          tap the envelope
+        </div>
+
+        <button
+          class="circle-next next-button"
+          data-next="5"
+          aria-label="Next"
+        >
+          ↓
+        </button>
+
+      </div>
+
+    </section>
+
+
+    <!-- =======================================================
+         05 — FINAL
+    ======================================================== -->
+
+    <section
+      class="scene"
+      data-scene="5"
+    >
+
+      <div class="final-scene">
+
+        <div
+          id="finalHeart"
+          class="final-heart"
+        >
+          ♥
+        </div>
+
+        <div class="small-label">
+          ONE LAST THING
+        </div>
+
+        <h2>
+          Namira,
+        </h2>
+
+        <p class="final-message">
+          Some feelings don't need a perfect explanation.
+          They just need to be honest.
+        </p>
+
+        <p class="final-message">
+          You are a beautiful chapter in my story,
+          and I hope you always know how much you mean to me.
+        </p>
+
+        <button
+          id="secretButton"
+          class="secret-button"
+        >
+          There is one more thing
+          <span>♥</span>
+        </button>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- =========================================================
+       PHOTO LIGHTBOX
+  ========================================================== -->
+
+  <div
+    id="photoModal"
+    class="modal"
+    aria-hidden="true"
+  >
+
+    <button
+      id="closePhoto"
+      class="modal-close"
+      aria-label="Close"
+    >
+      ×
+    </button>
+
+    <div class="modal-inner">
+
+      <img
+        id="modalImage"
+        src=""
+        alt=""
+      >
+
+      <div
+        id="modalCaption"
+        class="modal-caption"
+      ></div>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================================================
+       SECRET MESSAGE
+  ========================================================== -->
+
+  <div
+    id="secretModal"
+    class="modal secret-modal"
+    aria-hidden="true"
+  >
+
+    <button
+      id="closeSecret"
+      class="modal-close"
+      aria-label="Close"
+    >
+      ×
+    </button>
+
+    <div class="secret-card">
+
+      <div class="secret-heart">
+        ♥
+      </div>
+
+      <div class="small-label">
+        MY FAVORITE THOUGHT
+      </div>
+
+      <h3>
+        Somewhere in this huge world...
+      </h3>
+
+      <p>
+        I got to meet
+        <strong>you.</strong>
+      </p>
+
+      <div class="secret-line"></div>
+
+      <span>
+        Made with a lot of feelings,
+        just for Namira.
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <!-- =========================================================
+       NAVIGATION
+  ========================================================== -->
+
+  <div class="navigation">
+
+    <button
+      id="previousButton"
+      aria-label="Previous scene"
+    >
+      ↑
+    </button>
+
+    <div class="dots">
+
+      <button data-go="1" class="dot active"></button>
+      <button data-go="2" class="dot"></button>
+      <button data-go="3" class="dot"></button>
+      <button data-go="4" class="dot"></button>
+      <button data-go="5" class="dot"></button>
+
+    </div>
+
+    <button
+      id="nextNavigation"
+      aria-label="Next scene"
+    >
+      ↓
+    </button>
+
+  </div>
+
+
+  <script src="app.js"></script>
+
 </body>
 </html>
